@@ -247,23 +247,30 @@ def main():
         else:
             print("  No keyword — skipping.")
     else:
-        print("  Enter keywords one at a time to strip matching packages.")
-        print("  Press Enter with no input or type 'quit' to move on.\n")
+        print("  Enter one or more space-separated keywords to strip matching packages.")
+        print("  e.g.  plasma kde qt      strips all three in one go")
+        print("  Blank or 'quit' to move on.\n")
         total_removed = 0
         while True:
-            keyword = input(f"  Keyword [{len(packages)} remaining] (quit to stop): ").strip()
-            if not keyword or keyword.lower() == "quit":
+            raw = input(f"  Keywords [{len(packages)} remaining] (quit to stop): ").strip()
+            if not raw or raw.lower() == "quit":
                 break
-            kw_lower = keyword.lower()
-            removed  = [p for p in packages if kw_lower in p.lower()]
-            if not removed:
-                print(f"    no packages matched '{keyword}'\n")
-                continue
-            packages = [p for p in packages if kw_lower not in p.lower()]
-            total_removed += len(removed)
-            print(f"    '{keyword}' — removed {len(removed)}:")
-            for p in removed:
-                print(f"      - {p}  ({bytes_to_human(sizes.get(p, 0))})")
+            keywords = raw.split()
+            round_removed = 0
+            for keyword in keywords:
+                kw_lower = keyword.lower()
+                removed  = [p for p in packages if kw_lower in p.lower()]
+                if not removed:
+                    print(f"    '{keyword}' — no matches")
+                    continue
+                packages = [p for p in packages if kw_lower not in p.lower()]
+                total_removed  += len(removed)
+                round_removed  += len(removed)
+                print(f"    '{keyword}' — removed {len(removed)}:")
+                for p in removed:
+                    print(f"      - {p}  ({bytes_to_human(sizes.get(p, 0))})")
+            if len(keywords) > 1 and round_removed:
+                print(f"    [{round_removed} removed this pass, {len(packages)} remaining]")
             print()
         if total_removed:
             print(f"\n  Keywords done — {total_removed} packages removed total.\n")
